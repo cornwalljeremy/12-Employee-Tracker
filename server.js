@@ -27,7 +27,6 @@ afterConnection = () => {
           "Add Employee",
           "Change Dept",
           "Add Role",
-          "Update Dept",
           "Update Employee Role",
           "I am Done",
         ],
@@ -54,6 +53,9 @@ afterConnection = () => {
         case "Add Role":
           addRole();
           break;
+        case "Update Employee":
+          updateEmployee();
+          break;
 
         default:
           connection.end();
@@ -69,9 +71,91 @@ function viewEmployee() {
     afterConnection();
   });
 }
-function addDept() {
+function viewRole() {
+  connection.query("SELECT * FROM employee_DB.role;", function (err, res) {
+    if (err) throw err;
+    console.table(res);
+    afterConnection();
+  });
+}
+function viewDept() {
+  connection.query("SELECT * FROM employee_DB.dept;", function (err, res) {
+    if (err) throw err;
+    console.table(res);
+    afterConnection();
+  });
+}
+function addEmployee() {
   inquirer
     .prompt([
+      {
+        type: "input",
+        name: "firstNewEmploy",
+        message: "New Employee first Name:",
+      },
+      {
+        type: "input",
+        name: "lastNewEmploy",
+        message: "New Employee Last Name:",
+      },
+      {
+        type: "list",
+        name: "newRole",
+        choices: [
+          "Manager",
+          "Assistant Manager",
+          "Producer",
+          "Drums",
+          "Lead Guitar/VOX",
+          "Bass/Guitar/Piano/VOX",
+          "Guitar/VOX",
+          "none of the options",
+        ],
+        message: "What do they do?",
+      },
+    ])
+    .then((newEmployee) => {
+      const letterToNumb = role_id;
+      if(newEmployee === 'manager'){
+        letterToNumb = 1;
+      } else if {
+        (newEmployee === 'Assistant Manager'){
+          letterToNumb = 2;
+        }
+      } else if {
+
+      }
+      connection.query(
+        "INSERT INTO employee SET ?",
+        {
+          first_name: newEmployee.firstNewEmploy,
+          last_name: newEmployee.lastNewEmploy,
+          role_id: newEmployee.newRole,
+        },
+        function (err, res) {
+          if (err) throw err;
+          console.table(res);
+          afterConnection();
+        }
+      );
+    });
+}
+function changeDept() {
+  inquirer
+    .prompt([
+      {
+        type: "list",
+        name: "deptQuery",
+        choices: [
+          "Jeremy Cornwall",
+          "George Cornwall",
+          "Ringo Starr",
+          "George Harrison",
+          "Paul McCartney",
+          "John Lennon",
+        ],
+        message: "Which Employee dept would you like to change?",
+      },
       {
         name: "deptName",
         type: "input",
@@ -82,6 +166,9 @@ function addDept() {
       connection.query(
         "INSERT INTO dept SET ?",
         [
+          {
+            name: answers.deptQuery,
+          },
           {
             name: answers.deptName,
           },
