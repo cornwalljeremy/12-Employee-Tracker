@@ -105,26 +105,28 @@ function addEmployee() {
           "Manager",
           "Assistant Manager",
           "Producer",
-          "Drums",
-          "Lead Guitar/VOX",
-          "Bass/Guitar/Piano/VOX",
-          "Guitar/VOX",
-          "none of the options",
+          "Band Menmber",
+          "None of the options",
         ],
         message: "What do they do?",
       },
     ])
     .then((newEmployee) => {
-      const letterToNumb = role_id;
-      if(newEmployee === 'manager'){
-        letterToNumb = 1;
-      } else if {
-        (newEmployee === 'Assistant Manager'){
-          letterToNumb = 2;
-        }
-      } else if {
+      const newRole = employee.role_id;
+      if (newEmployee === "Manager") {
+       newRole = 1;
+      } else if (newEmployee === "Assistant Manager") {
+       newRole = 2;
+      } else if (newEmployee === "Producer") {
+       newRole = 7;
+      } else if (newEmployee === "Band Member") {
+       newRole = 3;
+      } else if  (newRole === "None of the options"){
+        console.log("New Employee added");
+        return newRole;
 
-      }
+      };
+
       connection.query(
         "INSERT INTO employee SET ?",
         {
