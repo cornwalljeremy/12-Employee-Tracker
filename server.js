@@ -112,20 +112,25 @@ function addEmployee() {
       },
     ])
     .then((newEmployee) => {
-      const newRole = employee.role_id;
-      if (newEmployee === "Manager") {
-       newRole = 1;
-      } else if (newEmployee === "Assistant Manager") {
-       newRole = 2;
-      } else if (newEmployee === "Producer") {
-       newRole = 7;
-      } else if (newEmployee === "Band Member") {
-       newRole = 3;
-      } else if  (newRole === "None of the options"){
+      console.log(newEmployee);
+      // let newEmployee.newRole = 0;
+      if (newEmployee.newRole === "Manager") {
+        newEmployee.newRole = 1;
         console.log("New Employee added");
-        return newRole;
-
+      } else if (newEmployee.newRole === "Assistant Manager") {
+        newEmployee.newRole = 2;
+        console.log("New Employee added");
+      } else if (newEmployee.newRole === "Producer") {
+       newEmployee.newRole = 7;
+       console.log("New Employee added");
+      } else if (newEmployee.newRole === "Band Member") {
+        newEmployee.newRole = 3;
+        console.log("New Employee added");
+      } else if  (newEmployee.newRole === "None of the options"){
+        console.log("No Employee added");
+        return null;
       };
+   
 
       connection.query(
         "INSERT INTO employee SET ?",
