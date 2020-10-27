@@ -65,18 +65,41 @@ afterConnection = () => {
 };
 
 function viewEmployee() {
-  connection.query("SELECT * FROM employee ", function (err, res) {
-    if (err) throw err;
-    console.table(res);
-    afterConnection();
-  });
+  connection.query(
+    `SELECT 
+  employee.id,
+  employee.last_name,
+  employee.first_name,
+  role.title,
+  role.salary
+  FROM employee
+  INNER JOIN role
+  ON employee.id = role.id
+  ORDER BY employee.id; `,
+    function (err, res) {
+      if (err) throw err;
+      console.table(res);
+      afterConnection();
+    }
+  );
 }
 function viewRole() {
-  connection.query("SELECT * FROM employee_DB.role;", function (err, res) {
-    if (err) throw err;
-    console.table(res);
-    afterConnection();
-  });
+  connection.query(
+    `SELECT 
+    employee.id,
+    employee.first_name,
+    employee.last_name,
+    role.title,
+    employee.role_id
+    FROM employee INNER JOIN role
+    ON employee.id = role.id
+    ORDER BY employee.id;`,
+    function (err, res) {
+      if (err) throw err;
+      console.table(res);
+      afterConnection();
+    }
+  );
 }
 function viewDept() {
   connection.query("SELECT * FROM employee_DB.dept;", function (err, res) {
@@ -105,14 +128,28 @@ function addEmployee() {
           "Manager",
           "Assistant Manager",
           "Producer",
-          "Band Menmber",
+          "Band Member",
           "None of the options",
         ],
         message: "What do they do?",
       },
+      {
+        type: "confirm",
+        name: "manDept",
+        message: "Are they in managment?",
+      },
+      {
+        type: "input",
+        name: "newMonie",
+        message: "How much do they make?",
+      },
+      {
+        type: "input",
+        name: "newJob",
+        message: "What is their role with the band?",
+      },
     ])
     .then((newEmployee) => {
-      console.log(newEmployee);
       // let newEmployee.newRole = 0;
       if (newEmployee.newRole === "Manager") {
         newEmployee.newRole = 1;
@@ -121,16 +158,20 @@ function addEmployee() {
         newEmployee.newRole = 2;
         console.log("New Employee added");
       } else if (newEmployee.newRole === "Producer") {
-       newEmployee.newRole = 7;
-       console.log("New Employee added");
+        newEmployee.newRole = 7;
+        console.log("New Employee added");
       } else if (newEmployee.newRole === "Band Member") {
         newEmployee.newRole = 3;
         console.log("New Employee added");
-      } else if  (newEmployee.newRole === "None of the options"){
+      } else if (newEmployee.newRole === "None of the options") {
         console.log("No Employee added");
         return null;
-      };
-   
+      }
+      if (newEmployee.manDept === true) {
+        console.log(newEmployee.manDept);
+        newEmployee.manDept = 1;
+      }
+      newEmployee.manDept = 2;
 
       connection.query(
         "INSERT INTO employee SET ?",
@@ -138,38 +179,59 @@ function addEmployee() {
           first_name: newEmployee.firstNewEmploy,
           last_name: newEmployee.lastNewEmploy,
           role_id: newEmployee.newRole,
+          manager_id: newEmployee.manDept,
         },
+
         function (err, res) {
           if (err) throw err;
-          console.table(res);
-          afterConnection();
+          // console.table(res);
+          // afterConnection();
         }
       );
+      connection.query(
+        "INSERT INTO role SET ?",
+        {
+          title: newEmployee.newJob,
+          salary: newMonie,
+        },
+      )
     });
 }
+async function retriveNames() {
+  var nameArray = [];
+  connection.query(
+    `SELECT first_name, last_name FROM employee_DB.employee;`,
+    await function (err, res) {
+      if (err) throw err;
+      for (let i = 0; i < res.length; i++) {
+        nameArray.push(res[i].first_name + " " + res[i].last_name);
+      }
+      console.log(nameArray);
+      return nameArray;
+    }
+  );
+  return nameArray;
+}
+
 function changeDept() {
-  inquirer
-    .prompt([
-      {
-        type: "list",
-        name: "deptQuery",
-        choices: [
-          "Jeremy Cornwall",
-          "George Cornwall",
-          "Ringo Starr",
-          "George Harrison",
-          "Paul McCartney",
-          "John Lennon",
-        ],
-        message: "Which Employee dept would you like to change?",
-      },
-      {
-        name: "deptName",
-        type: "input",
-        message: "Which Dept?",
-      },
-    ])
-    .then((answers) => {
+  let tempArray = retriveNames();
+  let deptArray = [
+    {
+      type: "list",
+      name: "deptQuery",
+      choices: tempArray,
+      message: "Which Employee dept would you like to change?",
+    },
+    {
+      name: "deptName",
+      type: "input",
+      message: "Which Dept?",
+    },
+  ];
+  inquirer.prompt(deptArray).then((answers) => {
+    let itemArray = answers["deptQuery"];
+    return (
+      itemArray,
       connection.query(
         "INSERT INTO dept SET ?",
         [
@@ -185,6 +247,7 @@ function changeDept() {
           console.table(res);
           afterConnection();
         }
-      );
-    });
+      )
+    );
+  });
 }
