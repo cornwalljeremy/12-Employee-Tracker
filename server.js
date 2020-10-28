@@ -26,6 +26,7 @@ afterConnection = () => {
           "View Dept",
           "Add Employee",
           "Change Dept",
+          "Add Dept",
           "Add Role",
           "Update Employee Role",
           "I am Done",
@@ -53,6 +54,9 @@ afterConnection = () => {
         case "Add Role":
           addRole();
           break;
+        case "Add Dept":
+          addDept();
+          break;
         case "Update Employee":
           updateEmployee();
           break;
@@ -71,7 +75,8 @@ function viewEmployee() {
   employee.last_name,
   employee.first_name,
   role.title,
-  role.salary
+  role.salary,
+  employee.manager_id
   FROM employee
   INNER JOIN role
   ON employee.id = role.id
@@ -90,7 +95,8 @@ function viewRole() {
     employee.first_name,
     employee.last_name,
     role.title,
-    employee.role_id
+    employee.role_id,
+    employee.manager_id
     FROM employee INNER JOIN role
     ON employee.id = role.id
     ORDER BY employee.id;`,
@@ -109,7 +115,11 @@ function viewDept() {
   });
 }
 function addEmployee() {
-  inquirer
+  connection.query(`SELECT * FROM role`, 
+  function (err, res) {
+    if (err) throw err;
+    console.table(res);
+    inquirer
     .prompt([
       {
         type: "input",
@@ -122,27 +132,16 @@ function addEmployee() {
         message: "New Employee Last Name:",
       },
       {
-        type: "list",
+        type: "input",
         name: "newRole",
-        choices: [
-          "Manager",
-          "Assistant Manager",
-          "Producer",
-          "Band Member",
-          "None of the options",
-        ],
-        message: "What do they do?",
-      },
-      {
-        type: "confirm",
-        name: "manDept",
-        message: "Are they in managment?",
+        message: "What is their role ID?",
       },
       {
         type: "input",
-        name: "newMonie",
-        message: "How much do they make?",
+        name: "manDept",
+        message: "What is your managers ID? (Management = 1 Band = 2",
       },
+
       {
         type: "input",
         name: "newJob",
@@ -151,27 +150,32 @@ function addEmployee() {
     ])
     .then((newEmployee) => {
       // let newEmployee.newRole = 0;
-      if (newEmployee.newRole === "Manager") {
-        newEmployee.newRole = 1;
-        console.log("New Employee added");
-      } else if (newEmployee.newRole === "Assistant Manager") {
-        newEmployee.newRole = 2;
-        console.log("New Employee added");
-      } else if (newEmployee.newRole === "Producer") {
-        newEmployee.newRole = 7;
-        console.log("New Employee added");
-      } else if (newEmployee.newRole === "Band Member") {
-        newEmployee.newRole = 3;
-        console.log("New Employee added");
-      } else if (newEmployee.newRole === "None of the options") {
-        console.log("No Employee added");
-        return null;
-      }
-      if (newEmployee.manDept === true) {
-        console.log(newEmployee.manDept);
-        newEmployee.manDept = 1;
-      }
-      newEmployee.manDept = 2;
+      // if (newEmployee.newRole === "Manager") {
+      //   newEmployee.newRole = 1;
+      //   afterConnection();
+      //   console.log("New Employee added");
+      // } else if (newEmployee.newRole === "Assistant Manager") {
+      //   newEmployee.newRole = 2;
+      //   console.log("New Employee added");
+      //   afterConnection();
+      // } else if (newEmployee.newRole === "Producer") {
+      //   newEmployee.newRole = 7;
+      //   console.log("New Employee added");
+      //   afterConnection();
+      // } else if (newEmployee.newRole === "Band Member") {
+      //   newEmployee.newRole = 3;
+      //   console.log("New Employee added");
+      //   afterConnection();
+      // } else if (newEmployee.newRole === "None of the options") {
+      //   console.log("No Employee added");
+      //   return null;
+      //   afterConnection();
+      // }
+      // if (newEmployee.manDept === true) {
+      //   console.log(newEmployee.manDept);
+      //   newEmployee.manDept = 1;
+      // }
+      // newEmployee.manDept = 2;
 
       connection.query(
         "INSERT INTO employee SET ?",
@@ -184,18 +188,15 @@ function addEmployee() {
 
         function (err, res) {
           if (err) throw err;
-          // console.table(res);
-          // afterConnection();
+          console.table(res);
+          afterConnection();
         }
       );
-      connection.query(
-        "INSERT INTO role SET ?",
-        {
-          title: newEmployee.newJob,
-          salary: newMonie,
-        },
-      )
+      
     });
+    
+  })
+  
 }
 async function retriveNames() {
   var nameArray = [];
@@ -249,5 +250,66 @@ function changeDept() {
         }
       )
     );
+  });
+}
+function addDept() {
+  inquirer
+    .prompt({
+      type: "input",
+      name: "deptInput",
+      message: "What dept are you adding?",
+    })
+    .then((answers) => {
+      connection.query(
+        `INSERT INTO dept SET ? `,
+        {
+          name: answers.deptInput,
+        },
+        function (err, res) {
+          if (err) throw err;
+          console.table(res);
+          afterConnection();
+        }
+      );
+    });
+}
+function addRole() {
+  connection.query(`SELECT * FROM dept`, function (err, res) {
+    if (err) throw err;
+    console.table(res);
+
+    inquirer
+      .prompt([
+        {
+          type: "input",
+          name: "deptId",
+          message: "Which Dept are they in?",
+        },
+        {
+          type: "input",
+          name: "roleTitle",
+          message: "What is the title of the role?",
+        },
+        {
+          type: "input",
+          name: "roleSalary",
+          message: "What salary does this role earn?",
+        },
+      ])
+      .then((answers) => {
+        connection.query(
+          `INSERT INTO role SET ?`,
+          {
+            dept_id: answers.deptId,
+            title: answers.roleTitle,
+            salary: answers.roleSalary,
+          },
+          function (err, res) {
+            if (err) throw err;
+            console.table(res);
+            afterConnection();
+          }
+        );
+      });
   });
 }
