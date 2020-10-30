@@ -29,6 +29,7 @@ afterConnection = () => {
           "Add Dept",
           "Add Role",
           "Update Employee Role",
+          "Delete Employee",
           "I am Done",
         ],
         message: "What do you want to do?",
@@ -59,6 +60,9 @@ afterConnection = () => {
           break;
         case "Update Employee":
           updateEmployee();
+          break;
+        case "Delete Employee":
+          removeEmployee();
           break;
 
         default:
@@ -115,88 +119,84 @@ function viewDept() {
   });
 }
 function addEmployee() {
-  connection.query(`SELECT * FROM role`, 
-  function (err, res) {
+  connection.query(`SELECT * FROM role`, function (err, res) {
     if (err) throw err;
     console.table(res);
     inquirer
-    .prompt([
-      {
-        type: "input",
-        name: "firstNewEmploy",
-        message: "New Employee first Name:",
-      },
-      {
-        type: "input",
-        name: "lastNewEmploy",
-        message: "New Employee Last Name:",
-      },
-      {
-        type: "input",
-        name: "newRole",
-        message: "What is their role ID?",
-      },
-      {
-        type: "input",
-        name: "manDept",
-        message: "What is your managers ID? (Management = 1 Band = 2",
-      },
-
-      {
-        type: "input",
-        name: "newJob",
-        message: "What is their role with the band?",
-      },
-    ])
-    .then((newEmployee) => {
-      // let newEmployee.newRole = 0;
-      // if (newEmployee.newRole === "Manager") {
-      //   newEmployee.newRole = 1;
-      //   afterConnection();
-      //   console.log("New Employee added");
-      // } else if (newEmployee.newRole === "Assistant Manager") {
-      //   newEmployee.newRole = 2;
-      //   console.log("New Employee added");
-      //   afterConnection();
-      // } else if (newEmployee.newRole === "Producer") {
-      //   newEmployee.newRole = 7;
-      //   console.log("New Employee added");
-      //   afterConnection();
-      // } else if (newEmployee.newRole === "Band Member") {
-      //   newEmployee.newRole = 3;
-      //   console.log("New Employee added");
-      //   afterConnection();
-      // } else if (newEmployee.newRole === "None of the options") {
-      //   console.log("No Employee added");
-      //   return null;
-      //   afterConnection();
-      // }
-      // if (newEmployee.manDept === true) {
-      //   console.log(newEmployee.manDept);
-      //   newEmployee.manDept = 1;
-      // }
-      // newEmployee.manDept = 2;
-
-      connection.query(
-        "INSERT INTO employee SET ?",
+      .prompt([
         {
-          first_name: newEmployee.firstNewEmploy,
-          last_name: newEmployee.lastNewEmploy,
-          role_id: newEmployee.newRole,
-          manager_id: newEmployee.manDept,
+          type: "input",
+          name: "firstNewEmploy",
+          message: "New Employee first Name:",
+        },
+        {
+          type: "input",
+          name: "lastNewEmploy",
+          message: "New Employee Last Name:",
+        },
+        {
+          type: "input",
+          name: "newRole",
+          message: "What is their role ID?",
+        },
+        {
+          type: "input",
+          name: "manDept",
+          message: "What is your managers ID? (Management = 1 Band = 2",
         },
 
-        function (err, res) {
-          if (err) throw err;
-          console.table(res);
-          afterConnection();
-        }
-      );
-      
-    });
-    
-  })
-  
+        {
+          type: "input",
+          name: "newJob",
+          message: "What is their role with the band?",
+        },
+      ])
+      .then((newEmployee) => {
+        // let newEmployee.newRole = 0;
+        // if (newEmployee.newRole === "Manager") {
+        //   newEmployee.newRole = 1;
+        //   afterConnection();
+        //   console.log("New Employee added");
+        // } else if (newEmployee.newRole === "Assistant Manager") {
+        //   newEmployee.newRole = 2;
+        //   console.log("New Employee added");
+        //   afterConnection();
+        // } else if (newEmployee.newRole === "Producer") {
+        //   newEmployee.newRole = 7;
+        //   console.log("New Employee added");
+        //   afterConnection();
+        // } else if (newEmployee.newRole === "Band Member") {
+        //   newEmployee.newRole = 3;
+        //   console.log("New Employee added");
+        //   afterConnection();
+        // } else if (newEmployee.newRole === "None of the options") {
+        //   console.log("No Employee added");
+        //   return null;
+        //   afterConnection();
+        // }
+        // if (newEmployee.manDept === true) {
+        //   console.log(newEmployee.manDept);
+        //   newEmployee.manDept = 1;
+        // }
+        // newEmployee.manDept = 2;
+
+        connection.query(
+          "INSERT INTO employee SET ?",
+          {
+            first_name: newEmployee.firstNewEmploy,
+            last_name: newEmployee.lastNewEmploy,
+            role_id: newEmployee.newRole,
+            manager_id: newEmployee.manDept,
+          },
+
+          function (err, res) {
+            if (err) throw err;
+            console.table(res);
+            afterConnection();
+          }
+        );
+      });
+  });
 }
 async function retriveNames() {
   var nameArray = [];
@@ -312,4 +312,39 @@ function addRole() {
         );
       });
   });
+}
+function removeEmployee() {
+  connection.query(
+    `SELECT 
+  employee.id,
+  employee.last_name,
+  employee.first_name,
+  role.title,
+  role.salary,
+  employee.manager_id
+  FROM employee
+  INNER JOIN role
+  ON employee.id = role.id
+  ORDER BY employee.id; `,
+    function (err, res) {
+      if (err) throw err;
+      console.table(res);
+
+      inquirer
+        .prompt({
+          type: "input",
+          name: "delEmploy",
+          message:
+            "Please type the ID of the employee you would like to delete.",
+        })
+        .then((answers) => {
+          connection.query(`DELETE FROM employee WHERE id = ${answers.delEmploy};`,function (err, res) {
+            if (err) throw err;
+            console.table(res);
+            console.log("You have deleted the employee")
+            afterConnection();
+          });
+        });
+    }
+  );
 }
