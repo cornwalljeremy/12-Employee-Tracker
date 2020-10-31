@@ -64,8 +64,12 @@ afterConnection = () => {
         case "Delete Employee":
           removeEmployee();
           break;
+        case "Update Employee Role":
+          updateEmplyRole();
+          break;
 
         default:
+          console.log("Thanks For Playing!")
           connection.end();
           break;
       }
@@ -76,8 +80,8 @@ function viewEmployee() {
   connection.query(
     `SELECT 
   employee.id,
-  employee.last_name,
   employee.first_name,
+  employee.last_name,
   role.title,
   role.salary,
   employee.manager_id
@@ -96,8 +100,7 @@ function viewRole() {
   connection.query(
     `SELECT 
     employee.id,
-    employee.first_name,
-    employee.last_name,
+    
     role.title,
     employee.role_id,
     employee.manager_id
@@ -148,40 +151,12 @@ function addEmployee() {
         {
           type: "input",
           name: "newJob",
-          message: "What is their role with the band?",
+          message: "What is their title with the band?",
         },
       ])
       .then((newEmployee) => {
-        // let newEmployee.newRole = 0;
-        // if (newEmployee.newRole === "Manager") {
-        //   newEmployee.newRole = 1;
-        //   afterConnection();
-        //   console.log("New Employee added");
-        // } else if (newEmployee.newRole === "Assistant Manager") {
-        //   newEmployee.newRole = 2;
-        //   console.log("New Employee added");
-        //   afterConnection();
-        // } else if (newEmployee.newRole === "Producer") {
-        //   newEmployee.newRole = 7;
-        //   console.log("New Employee added");
-        //   afterConnection();
-        // } else if (newEmployee.newRole === "Band Member") {
-        //   newEmployee.newRole = 3;
-        //   console.log("New Employee added");
-        //   afterConnection();
-        // } else if (newEmployee.newRole === "None of the options") {
-        //   console.log("No Employee added");
-        //   return null;
-        //   afterConnection();
-        // }
-        // if (newEmployee.manDept === true) {
-        //   console.log(newEmployee.manDept);
-        //   newEmployee.manDept = 1;
-        // }
-        // newEmployee.manDept = 2;
-
         connection.query(
-          "INSERT INTO employee SET ?",
+          "INSERT INTO employee_DB.employee SET ?",
           {
             first_name: newEmployee.firstNewEmploy,
             last_name: newEmployee.lastNewEmploy,
@@ -198,60 +173,62 @@ function addEmployee() {
       });
   });
 }
-async function retriveNames() {
-  var nameArray = [];
-  connection.query(
-    `SELECT first_name, last_name FROM employee_DB.employee;`,
-    await function (err, res) {
-      if (err) throw err;
-      for (let i = 0; i < res.length; i++) {
-        nameArray.push(res[i].first_name + " " + res[i].last_name);
-      }
-      console.log(nameArray);
-      return nameArray;
-    }
-  );
-  return nameArray;
-}
 
 function changeDept() {
-  let tempArray = retriveNames();
-  let deptArray = [
-    {
-      type: "list",
-      name: "deptQuery",
-      choices: tempArray,
-      message: "Which Employee dept would you like to change?",
-    },
-    {
-      name: "deptName",
-      type: "input",
-      message: "Which Dept?",
-    },
-  ];
-  inquirer.prompt(deptArray).then((answers) => {
-    let itemArray = answers["deptQuery"];
-    return (
-      itemArray,
-      connection.query(
-        "INSERT INTO dept SET ?",
-        [
+  connection.query(
+    `SELECT 
+  employee.id,
+  employee.last_name,
+  employee.first_name,
+  employee.manager_id,
+  role.title,
+  role.salary,
+  dept.name
+FROM employee
+INNER JOIN role
+ON employee.id = role.id
+INNER JOIN dept
+ON manager_id = dept.id;`,
+    function (err, res) {
+      if (err) throw err;
+      console.table(res);
+      inquirer
+        .prompt([
           {
-            name: answers.deptQuery,
+            type: "input",
+            name: "deptQuery",
+            message: "What is the employee id whos dept you want to change?",
           },
+          // connection.query(`SELECT * FROM employee_DB.dept;`,
+          // function (err, res) {
+          //   if (err) throw err;
+          //   console.table(res);
+
+          // }),
+
           {
-            name: answers.deptName,
+            type: "input",
+            name: "deptName",
+            message: "To Which dept?",
           },
-        ],
-        function (err, res) {
-          if (err) throw err;
-          console.table(res);
-          afterConnection();
-        }
-      )
-    );
-  });
+        ])
+        .then((answers) => {
+          connection.query(
+            `INSERT INTO role SET WHERE dept_id = ${answers.deptQuery} ? `,
+            {
+              dept_id: answers.deptName,
+            },
+            function (err, res) {
+              if (err) throw err;
+              console.table(res);
+              afterConnection();
+            }
+          );
+        });
+    }
+  );
 }
+
 function addDept() {
   inquirer
     .prompt({
@@ -338,12 +315,61 @@ function removeEmployee() {
             "Please type the ID of the employee you would like to delete.",
         })
         .then((answers) => {
-          connection.query(`DELETE FROM employee WHERE id = ${answers.delEmploy};`,function (err, res) {
-            if (err) throw err;
-            console.table(res);
-            console.log("You have deleted the employee")
-            afterConnection();
-          });
+          connection.query(
+            `DELETE FROM employee WHERE id = ${answers.delEmploy};`,
+            function (err, res) {
+              if (err) throw err;
+              console.table(res);
+              console.log("You have deleted the employee");
+              afterConnection();
+            }
+          );
+        });
+    }
+  );
+}
+function updateEmplyRole() {
+  connection.query(
+    `SELECT 
+  employee.id,
+  employee.last_name,
+  employee.first_name,
+  role.title,
+  role.salary,
+  employee.manager_id
+  FROM employee
+  INNER JOIN role
+  ON employee.id = role.id
+  ORDER BY employee.id; `,
+    function (err, res) {
+      if (err) throw err;
+      console.table(res);
+
+      inquirer
+        .prompt([
+          {
+            type: "input",
+            name: "wichEmploy",
+            message: "Which employee would you like to update? ",
+          },
+          {
+            type: "input",
+            name: "newRole",
+            message: "What is their new role?",
+          },
+        ])
+        .then((answers) => {
+          connection.query(
+            `INSERT INTO role WHERE id = ${answers.wichEmploy}`,
+            {
+              title: answers.newRole,
+            },
+            function (err, res) {
+              if (err) throw err;
+              console.table(res);
+              afterConnection();
+            }
+          );
         });
     }
   );
