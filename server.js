@@ -11,6 +11,7 @@ const connection = mysql.createConnection({
 });
 connection.connect((err) => {
   if (err) throw err;
+  
   console.log("connected as id " + connection.threadId + "\n");
   afterConnection();
 });
@@ -162,11 +163,7 @@ function addEmployee() {
           message: "What is your managers ID? (Management = 1 Other = 2",
         },
 
-        // {
-        //   type: "input",
-        //   name: "newSalary",
-        //   message: "What is the salary of this employee?",
-        // },
+        
       ])
       .then((newEmployee) => {
         let chosenRole;
@@ -197,76 +194,6 @@ function addEmployee() {
   });
 }
 
-// function changeDept() {
-//   connection.query(
-//     `SELECT
-//   e.id,
-//   e.first_name,
-//   e.last_name,
-//   e.manager_id,
-//   role.title,
-//   role.salary,
-//   dept.name
-// FROM employee e
-// INNER JOIN role
-// ON e.id = role.id
-// INNER JOIN dept
-// ON manager_id = dept.id;`,
-//     function (err, res) {
-//       if (err) throw err;
-//       console.table(res);
-//       inquirer
-//         .prompt([
-//           {
-//             type: "input",
-//             name: "deptQuery",
-//             message: "Which employee would you want to change?",
-//             // choices: function () {
-//             //   let employArray = [];
-//             //   for (let i = 0; i < res.length; i++) {
-//             //     employArray.push(res[i].first_name.last_name);
-//             //   }
-//             //   return employArray;
-//             // },
-//           },
-//           {
-//             type: "input",
-//             name: "deptName",
-//             message: "To Which dept?",
-//             // choices: function () {
-//             //   let deptArray = [];
-//             //   for (let i = 0; i < res.length; i++) {
-//             //     deptArray.push(res[i].id);
-//             //   }
-//             //   return deptArray;
-//             // },
-//           },
-//         ])
-//         .then((answers) => {
-//           console.log(deptQuery)
-//           // let chosenDept;
-
-//           // for (let i = 0; i < res.length; i++) {
-//           //   if (res[i].title === answers.deptQuery) {
-//           //     chosenDeptt = res[i];
-//           //     // console.log(chosenRole);
-//           //   }
-//             connection.query(
-//               `INSERT INTO role SET WHERE id = ${answers.deptQuery} ? `,
-//               {
-//                 dept_id: answers.deptName,
-//               },
-//               function (err, res) {
-//                 if (err) throw err;
-//                 console.table(res);
-//                 afterConnection();
-//               }
-//             );
-
-//         });
-//     }
-//   );
-// }
 
 function addDept() {
   inquirer
